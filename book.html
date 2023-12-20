@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+			background-image:url(book.jpg);
+			background-size:100%,100%;
+        }
+
+        .book-list {
+            margin-top: 20px;
+        }
+		
+		.card-body{
+		box-shadow:2px 2px 50px lightblue;
+		}
+		
+    </style>
+</head>
+<body>
+
+<div class="container">
+   
+<div id="wrapper">
+ <div class="height-100v d-flex align-items-center justify-content-center">
+	<div class="card border-primary border-top-sm border-bottom-sm card-authentication1 mx-auto my-5 animated bounceInDown">
+		<div class="card-body" style="background-color:FF3399;">
+		 <div class="card-content p-2" >
+		  <div class="card-title text-uppercase text-center pb-2"><h2>Book Library</h2></div>
+		  <hr>
+		  <bR>
+		    <form id="addBookForm" >
+        <div class="form-row" >
+            <div class="col-md-4 mb-3">
+                <label for="bookTitle">Title</label>
+                <input type="text" class="form-control" id="bookTitle" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="bookAuthor">Author</label>
+                <input type="text" class="form-control" id="bookAuthor" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="bookCategory">Category</label>
+                <input type="text" class="form-control" id="bookCategory" required>
+            </div>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="addBook()">Add Book</button>
+    </form>
+		   </div>
+		  </div>
+	     </div>
+	     </div>
+		 
+<div id="wrapper">
+ <div class="height-100v d-flex align-items-center justify-content-center">
+	<div class="card border-primary border-top-sm border-bottom-sm card-authentication1 mx-auto my-5 animated bounceInDown">
+		<div class="card-body" >
+		 <div class="card-content p-2">
+		  <div class="card-title text-uppercase text-center pb-2"><h2>Book List</h2></div>
+		  <hr>
+		 
+		    <div class="book-list">
+        
+        <div class="form-group">
+            <label for="sortSelect">Sort By:</label>
+            <select class="form-control" id="sortSelect" onchange="sortBooks()">
+                <option value="title">Title</option>
+                <option value="author">Author</option>
+                <option value="category">Category</option>
+            </select>
+        </div>
+        <input type="text" class="form-control mb-2" id="searchInput" placeholder="Search by title or author" oninput="searchBooks()">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="bookTableBody">
+                <!-- Book list will be displayed here -->
+            </tbody>
+        </table>
+    </div>
+		   </div>
+		  </div>
+	     </div>
+	     </div>
+		 
+    <div id="bookDetails" class="mt-4">
+        <!-- Book details will be displayed here -->
+    </div>
+
+    
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    const books = [];
+    const borrowingHistory = [];
+
+    function addBook() {
+        const title = document.getElementById('bookTitle').value;
+        const author = document.getElementById('bookAuthor').value;
+        const category = document.getElementById('bookCategory').value;
+
+        const book = { title, author, category, borrowed: false, returnDate: null, favorite: false };
+        books.push(book);
+
+        displayBooks();
+        clearForm();
+    }
+
+    function displayBooks(booksToDisplay) {
+        const tableBody = document.getElementById('bookTableBody');
+        tableBody.innerHTML = '';
+
+        const booksToShow = booksToDisplay || books;
+
+        for (const book of booksToShow) {
+            const row = `<tr>
+                            <td><a href="#" onclick="showBookDetails('${book.title}')">${book.title}</a></td>
+                            <td>${book.author}</td>
+                            <td>${book.category}</td>
+                            <td>
+                                <button class="btn btn-danger" onclick="removeBook('${book.title}')">Remove</button>
+                                <button class="btn btn-success" onclick="toggleFavoriteStatus('${book.title}')">${book.favorite ? 'Unfavorite' : 'Favorite'}</button>
+                                ${book.borrowed ? '<span class="badge badge-warning ml-2">Borrowed</span>' : ''}
+                                ${book.favorite ? '<span class="badge badge-success ml-2">Favorite</span>' : ''}
+                            </td>
+                        </tr>`;
+            tableBody.innerHTML += row;
+        }
+    }
+
+    function toggleFavoriteStatus(title) {
+        const book = books.find(b => b.title === title);
+
+        if (book) {
+            book.favorite = !book.favorite;
+            displayBooks();
+        }
+    }
+
+    function sortBooks() {
+        const sortSelect = document.getElementById('sortSelect');
+        const sortBy = sortSelect.value;
+
+        let sortedBooks = [...books];
+
+        if (sortBy === 'title') {
+            sortedBooks.sort((a, b) => a.title.localeCompare(b.title));
+        } else if (sortBy === 'author') {
+            sortedBooks.sort((a, b) => a.author.localeCompare(b.author));
+        } else if (sortBy === 'category') {
+            sortedBooks.sort((a, b) => a.category.localeCompare(b.category));
+        }
+
+        displayBooks(sortedBooks);
+    }
+
+    function searchBooks() {
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const filteredBooks = books.filter(book => book.title.toLowerCase().includes(searchInput) || book.author.toLowerCase().includes(searchInput));
+        displayBooks(filteredBooks);
+    }
+
+    function showBookDetails(title) {
+        const book = books.find(b => b.title === title);
+        const bookDetails = document.getElementById('bookDetails');
+        bookDetails.innerHTML = '';
+
+        if (book) {
+            const details = `<div id="wrapper">
+ <div class="height-100v d-flex align-items-center justify-content-center">
+	<div class="card border-primary border-top-sm border-bottom-sm card-authentication1 mx-auto my-5 animated bounceInDown">
+		<div class="card-body">
+		 <div class="card-content p-2">
+		  <div class="card-title text-uppercase text-center pb-2"><h2>Borrowing History</h2></div>
+		  <hr>
+		  <br> 
+		  		
+			<p class="card-text "><strong>Book:${book.title}</strong></p>
+			<p class="card-text"><strong>Author:</strong> ${book.author}</p>
+			<p class="card-text"><strong>Category:</strong> ${book.category}</p>
+			<p class="card-text"><strong>Status:</strong> ${book.borrowed ? 'Borrowed' : 'Available'}</p>
+			${book.borrowed ? `<p class="card-text"><strong>Return Date:</strong> ${book.returnDate}</p>` : ''}
+			<button class="btn btn-primary" onclick="toggleBorrowStatus('${book.title}')">${book.borrowed ? 'Return' : 'Borrow'}</button>
+
+		   </div>
+		  </div>
+	     </div>
+	     </div>`;
+            bookDetails.innerHTML = details;
+        }
+    }
+
+    function toggleBorrowStatus(title) {
+        const book = books.find(b => b.title === title);
+
+        if (book) {
+            if (book.borrowed) {
+                book.borrowed = false;
+                book.returnDate = null;
+            } else {
+                book.borrowed = true;
+                const returnDate = new Date();
+                returnDate.setDate(returnDate.getDate() + 14); // Set return date to 14 days from today
+                book.returnDate = returnDate.toISOString().split('T')[0];
+            }
+
+            displayBooks();
+            showBookDetails(title);
+        }
+    }
+
+    function removeBook(title) {
+        const index = books.findIndex(book => book.title === title);
+        if (index !== -1) {
+            books.splice(index, 1);
+            displayBooks();
+        }
+    }
+
+    function clearForm() {
+        document.getElementById('bookTitle').value = '';
+        document.getElementById('bookAuthor').value = '';
+        document.getElementById('bookCategory').value = '';
+    }
+
+    function checkOverdueBooks() {
+        const today = new Date();
+
+        for (const book of books) {
+            if (book.borrowed && new Date(book.returnDate) < today) {
+                alert(`The book "${book.title}" is overdue! Please return it.`);
+            }
+        }
+    }
+
+   
+    checkOverdueBooks();
+</script>
+
+</body>
+</html>
